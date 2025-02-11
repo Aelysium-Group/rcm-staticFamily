@@ -1,0 +1,11 @@
+{
+  "main": "group.aelysium.rustyconnector.modules.static_family.StaticFamilyRegistry$Tinder",
+  "name": "StaticFamilyRegistry",
+  "description": "Provides Static Family services for the FamilyRegistry.",
+  "dependencies": [
+    "haze"
+  ],
+  "environments": [
+    "proxy"
+  ]
+}
