@@ -32,16 +32,6 @@ java {
     withSourcesJar()
 }
 
-processResources {
-    def props = ["version": module_version]
-    inputs.properties props
-    filteringCharset "UTF-8"
-
-    filesMatching("rc-module.json") {
-        expand props
-    }
-}
-
 compileJava {
     options.encoding = "UTF-8"
 }

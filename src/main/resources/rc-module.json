@@ -1,5 +1,5 @@
 {
-  "main": "group.aelysium.rustyconnector.modules.static_family.StaticFamilyRegistry$Tinder",
+  "main": "group.aelysium.rustyconnector.modules.static_family.RCMStaticFamilyRegistry$Tinder",
   "name": "StaticFamilyRegistry",
   "description": "Provides Static Family services for the FamilyRegistry.",
   "dependencies": [

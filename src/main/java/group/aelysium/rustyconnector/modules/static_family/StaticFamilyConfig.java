@@ -4,6 +4,7 @@ import group.aelysium.declarative_yaml.DeclarativeYAML;
 import group.aelysium.declarative_yaml.annotations.*;
 import group.aelysium.declarative_yaml.lib.Printer;
 import group.aelysium.rustyconnector.common.magic_link.packet.Packet;
+import group.aelysium.rustyconnector.proxy.family.load_balancing.LoadBalancerAlgorithmExchange;
 import group.aelysium.rustyconnector.proxy.family.scalar_family.ScalarFamily;
 import group.aelysium.rustyconnector.proxy.util.LiquidTimestamp;
 import group.aelysium.rustyconnector.shaded.com.google.code.gson.gson.Gson;
@@ -159,6 +160,9 @@ public class StaticFamilyConfig {
             "#         the typical server they play on is unavailable   #",
             "#         so they were connected to a different            #",
             "#         one instead.                                     #",
+            "#  ⚫ CONNECT_WITHOUT_ERROR -                              #",
+            "#         Connect the player to the family but don't       #",
+            "#         change their residence.                          #",
             "#                                                          #",
             "#               ---------------------------                #",
             "#                                                          #",
