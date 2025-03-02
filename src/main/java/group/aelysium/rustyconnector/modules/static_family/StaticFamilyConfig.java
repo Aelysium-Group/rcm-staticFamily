@@ -1,17 +1,10 @@
 package group.aelysium.rustyconnector.modules.static_family;
 
-import group.aelysium.declarative_yaml.DeclarativeYAML;
-import group.aelysium.declarative_yaml.annotations.*;
-import group.aelysium.declarative_yaml.lib.Printer;
-import group.aelysium.rustyconnector.common.magic_link.packet.Packet;
-import group.aelysium.rustyconnector.proxy.family.load_balancing.LoadBalancerAlgorithmExchange;
-import group.aelysium.rustyconnector.proxy.family.scalar_family.ScalarFamily;
-import group.aelysium.rustyconnector.proxy.util.LiquidTimestamp;
-import group.aelysium.rustyconnector.shaded.com.google.code.gson.gson.Gson;
-import group.aelysium.rustyconnector.shaded.com.google.code.gson.gson.JsonObject;
+import group.aelysium.rustyconnector.shaded.group.aelysium.declarative_yaml.DeclarativeYAML;
+import group.aelysium.rustyconnector.shaded.group.aelysium.declarative_yaml.annotations.*;
+import group.aelysium.rustyconnector.shaded.group.aelysium.declarative_yaml.lib.Printer;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.Map;
 
 @Namespace("rustyconnector")
@@ -40,7 +33,7 @@ import java.util.Map;
 })
 public class StaticFamilyConfig {
     @PathParameter("id")
-    private String id;
+    public String id;
 
     @Comment({
             "############################################################",
@@ -62,7 +55,7 @@ public class StaticFamilyConfig {
             "############################################################"
     })
     @Node(0)
-    private String displayName = "";
+    public String displayName = "";
 
     @Comment({
             "############################################################",
@@ -84,7 +77,7 @@ public class StaticFamilyConfig {
             "############################################################"
     })
     @Node(1)
-    private String parentFamily = "";
+    public String parentFamily = "";
 
     @Node(2)
     @Comment({
@@ -103,7 +96,7 @@ public class StaticFamilyConfig {
             "#||||||||||||||||||||||||||||||||||||||||||||||||||||||||||#",
             "############################################################"
     })
-    private String loadBalancer = "default";
+    public String loadBalancer = "default";
 
     @Node(3)
     @Comment({
@@ -129,7 +122,7 @@ public class StaticFamilyConfig {
             "#||||||||||||||||||||||||||||||||||||||||||||||||||||||||||#",
             "############################################################"
     })
-    private String database = "default";
+    public String database = "default";
 
     @Node(4)
     @Comment({
@@ -169,7 +162,7 @@ public class StaticFamilyConfig {
             "#||||||||||||||||||||||||||||||||||||||||||||||||||||||||||#",
             "############################################################"
     })
-    private StaticFamily.UnavailableProtocol unavailableProtocol = StaticFamily.UnavailableProtocol.CONNECT_WITH_ERROR;
+    public StaticFamily.UnavailableProtocol unavailableProtocol = StaticFamily.UnavailableProtocol.CONNECT_WITH_ERROR;
 
     @Node(5)
     @Comment({
@@ -198,7 +191,7 @@ public class StaticFamilyConfig {
             "#||||||||||||||||||||||||||||||||||||||||||||||||||||||||||#",
             "############################################################"
     })
-    private StaticFamily.StorageProtocol storageProtocol = StaticFamily.StorageProtocol.ON_FIRST_JOIN;
+    public StaticFamily.StorageProtocol storageProtocol = StaticFamily.StorageProtocol.ON_FIRST_JOIN;
 
     @Comment({
             "############################################################",
@@ -222,7 +215,7 @@ public class StaticFamilyConfig {
             "############################################################"
     })
     @Node(6)
-    private String residenceExpiration = "30 DAYS";
+    public String residenceExpiration = "30 DAYS";
 
     @Node(7)
     @Comment({
@@ -232,27 +225,8 @@ public class StaticFamilyConfig {
             "# Ensure that the provided metadata conforms to valid JSON syntax.",
             "#"
     })
-    private String metadata = "{\\\"serverSoftCap\\\": 30, \\\"serverHardCap\\\": 40}";
-
-    public StaticFamily.Tinder tinder() throws IOException, ParseException {
-        StaticFamily.Tinder tinder = new StaticFamily.Tinder(
-                id,
-                displayName.isEmpty() ? null : displayName,
-                parentFamily.isEmpty() ? null : parentFamily,
-                LoadBalancerConfig.New(loadBalancer).tinder(),
-                this.database
-        );
-        tinder.storageProtocol(this.storageProtocol);
-        tinder.unavailableProtocol(this.unavailableProtocol);
-        tinder.residenceExpiration(LiquidTimestamp.from(this.residenceExpiration));
-
-        Gson gson = new Gson();
-        JsonObject metadataJson = gson.fromJson(this.metadata, JsonObject.class);
-        metadataJson.entrySet().forEach(e->tinder.metadata(e.getKey(), Packet.Parameter.fromJSON(e.getValue()).getOriginalValue()));
-
-        return tinder;
-    }
-
+    public String metadata = "{\\\"serverSoftCap\\\": 30, \\\"serverHardCap\\\": 40}";
+    
     public static StaticFamilyConfig New(String familyID) throws IOException {
         Printer printer = new Printer()
                 .pathReplacements(Map.of("id", familyID))

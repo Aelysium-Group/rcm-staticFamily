@@ -2,7 +2,7 @@ package group.aelysium.rustyconnector.modules.static_family;
 import group.aelysium.rustyconnector.RC;
 import group.aelysium.rustyconnector.common.errors.Error;
 import group.aelysium.rustyconnector.common.haze.HazeDatabase;
-import group.aelysium.rustyconnector.common.modules.ModuleTinder;
+import group.aelysium.rustyconnector.common.modules.Module;
 import group.aelysium.rustyconnector.proxy.events.FamilyPreJoinEvent;
 import group.aelysium.rustyconnector.proxy.family.Family;
 import group.aelysium.rustyconnector.proxy.family.Server;
@@ -10,7 +10,7 @@ import group.aelysium.rustyconnector.proxy.family.load_balancing.LoadBalancer;
 import group.aelysium.rustyconnector.proxy.player.Player;
 import group.aelysium.rustyconnector.proxy.util.AddressUtil;
 import group.aelysium.rustyconnector.proxy.util.LiquidTimestamp;
-import group.aelysium.rustyconnector.shaded.group.aelysium.ara.Particle;
+import group.aelysium.rustyconnector.shaded.group.aelysium.ara.Flux;
 import group.aelysium.rustyconnector.shaded.group.aelysium.haze.lib.DataHolder;
 import group.aelysium.rustyconnector.shaded.group.aelysium.haze.lib.Filterable;
 import group.aelysium.rustyconnector.shaded.group.aelysium.haze.lib.Type;
@@ -41,14 +41,14 @@ public class StaticFamily extends Family {
     protected final UnavailableProtocol unavailableProtocol;
     protected final StorageProtocol storageProtocol;
     protected final String databaseName;
-    protected final Flux<? extends HazeDatabase> database;
+    protected final Flux<HazeDatabase> database;
 
-    protected StaticFamily(
+    public StaticFamily(
             @NotNull String id,
             @Nullable String displayName,
             @Nullable String parent,
             @NotNull Map<String, Object> metadata,
-            @NotNull ModuleTinder<? extends LoadBalancer> loadBalancer,
+            @NotNull Module.Builder<LoadBalancer> loadBalancer,
             @NotNull LiquidTimestamp residenceExpiration,
             @NotNull UnavailableProtocol unavailableProtocol,
             @NotNull StorageProtocol storageProtocol,
@@ -61,10 +61,10 @@ public class StaticFamily extends Family {
         this.storageProtocol = storageProtocol;
         this.databaseName = database;
 
-        this.database = RC.P.Haze().fetchDatabase(this.databaseName)
-                .orElseThrow(()->new NoSuchElementException("No database exists on the haze provider with the name '"+this.databaseName+"'."));
-        HazeDatabase db = this.database.observe(15, TimeUnit.SECONDS);
+        this.database = RC.P.Haze().fetchDatabase(this.databaseName);
+        if(this.database == null) throw new NoSuchElementException("No database exists on the haze provider with the name '"+this.databaseName+"'.");
         
+        HazeDatabase db = this.database.get(15, TimeUnit.SECONDS);
         if(db.doesDataHolderExist(RESIDENCE_TABLE)) return;
 
         DataHolder table = new DataHolder(RESIDENCE_TABLE);
@@ -96,54 +96,54 @@ public class StaticFamily extends Family {
     }
 
     public void addServer(@NotNull Server server) {
-        this.loadBalancer().executeNow(l -> l.addServer(server));
+        this.loadBalancer().ifPresent(l -> l.addServer(server));
     }
 
     public void removeServer(@NotNull Server server) {
-        this.loadBalancer().executeNow(l -> l.removeServer(server));
+        this.loadBalancer().ifPresent(l -> l.removeServer(server));
     }
 
     @Override
     public Optional<Server> fetchServer(@NotNull String id) {
         AtomicReference<Optional<Server>> server = new AtomicReference<>();
-        this.loadBalancer().executeNow(l -> server.set(l.fetchServer(id)));
+        this.loadBalancer().ifPresent(l -> server.set(l.fetchServer(id)));
         return server.get();
     }
 
     @Override
     public boolean containsServer(@NotNull String id) {
         AtomicBoolean value = new AtomicBoolean(false);
-        this.loadBalancer().executeNow(l -> value.set(l.containsServer(id)));
+        this.loadBalancer().ifPresent(l -> value.set(l.containsServer(id)));
         return value.get();
     }
 
     @Override
     public void lockServer(@NotNull Server server) {
-        this.loadBalancer().executeNow(l -> l.lockServer(server));
+        this.loadBalancer().ifPresent(l -> l.lockServer(server));
     }
 
     @Override
     public void unlockServer(@NotNull Server server) {
-        this.loadBalancer().executeNow(l -> l.unlockServer(server));
+        this.loadBalancer().ifPresent(l -> l.unlockServer(server));
     }
 
     @Override
     public List<Server> lockedServers() {
         AtomicReference<List<Server>> value = new AtomicReference<>(new ArrayList<>());
-        this.loadBalancer().executeNow(l -> value.set(l.lockedServers()));
+        this.loadBalancer().ifPresent(l -> value.set(l.lockedServers()));
         return value.get();
     }
 
     @Override
     public List<Server> unlockedServers() {
         AtomicReference<List<Server>> value = new AtomicReference<>(new ArrayList<>());
-        this.loadBalancer().executeNow(l -> value.set(l.unlockedServers()));
+        this.loadBalancer().ifPresent(l -> value.set(l.unlockedServers()));
         return value.get();
     }
 
     public long players() {
         AtomicLong value = new AtomicLong(0);
-        this.loadBalancer().executeNow(l -> {
+        this.loadBalancer().ifPresent(l -> {
                     l.lockedServers().forEach(s -> value.addAndGet(s.players()));
                     l.unlockedServers().forEach(s -> value.addAndGet(s.players()));
                 }
@@ -156,7 +156,7 @@ public class StaticFamily extends Family {
     public List<Server> servers() {
         AtomicReference<List<Server>> servers = new AtomicReference<>(new ArrayList<>());
 
-        this.loadBalancer().executeNow(l -> servers.set(l.servers()));
+        this.loadBalancer().ifPresent(l -> servers.set(l.servers()));
 
         return servers.get();
     }
@@ -165,7 +165,7 @@ public class StaticFamily extends Family {
     public Optional<Server> availableServer() {
         AtomicReference<Server> server = new AtomicReference<>(null);
 
-        this.loadBalancer().executeNow(l -> server.set(l.availableServer().orElse(null)));
+        this.loadBalancer().ifPresent(l -> server.set(l.availableServer().orElse(null)));
 
         return Optional.ofNullable(server.get());
     }
@@ -173,7 +173,7 @@ public class StaticFamily extends Family {
     @Override
     public boolean isLocked(@NotNull Server server) {
         AtomicBoolean valid = new AtomicBoolean(false);
-        this.loadBalancer().executeNow(l -> valid.set(l.isLocked(server)));
+        this.loadBalancer().ifPresent(l -> valid.set(l.isLocked(server)));
         return valid.get();
     }
 
@@ -188,7 +188,7 @@ public class StaticFamily extends Family {
         } catch (Exception ignore) {}
 
         try {
-            HazeDatabase db = this.database.observe(15, TimeUnit.SECONDS);
+            HazeDatabase db = this.database.get(15, TimeUnit.SECONDS);
             Set<Residence> response;
             {
                 ReadRequest query = db.newReadRequest(RESIDENCE_TABLE);
@@ -214,7 +214,7 @@ public class StaticFamily extends Family {
             }
 
             Residence residence = response.stream().findAny().orElseThrow();
-            LoadBalancer loadBalancer = this.loadBalancer().observe(3, TimeUnit.SECONDS);
+            LoadBalancer loadBalancer = this.loadBalancer().get(3, TimeUnit.SECONDS);
             if(this.containsServer(residence.server_id())) {
                 Server server = loadBalancer.fetchServer(residence.server_id()).orElseThrow();
                 
@@ -291,9 +291,9 @@ public class StaticFamily extends Family {
     public @Nullable Component details() {
         AtomicReference<String> parentName = new AtomicReference<>("none");
         try {
-            Particle.Flux<? extends Family> parent = this.parent().orElse(null);
+            Flux<? extends Family> parent = this.parent().orElse(null);
             if(parent == null) throw new RuntimeException();
-            parent.executeLocking(f -> parentName.set(f.id()), ()->parentName.set("[Unavailable]"), 10, TimeUnit.SECONDS);
+            parent.compute(f -> parentName.set(f.id()), ()->parentName.set("[Unavailable]"), 10, TimeUnit.SECONDS);
         } catch (Exception ignore) {}
 
         return join(
@@ -352,71 +352,6 @@ public class StaticFamily extends Family {
                     )
             )
         );
-    }
-
-    public static class Tinder extends ModuleTinder<StaticFamily> {
-        private final String id;
-        private final String displayName;
-        private final String parent;
-        private final Map<String, Object> metadata = new HashMap<>();
-        private final LoadBalancer.Tinder<?> loadBalancer;
-        private final String database;
-        private LiquidTimestamp residenceExpiration = LiquidTimestamp.from(30, TimeUnit.DAYS);
-        private StorageProtocol storageProtocol = StorageProtocol.ON_FIRST_JOIN;
-        private UnavailableProtocol unavailableProtocol = UnavailableProtocol.ASSIGN_NEW_RESIDENCE;
-
-        public Tinder(
-                @NotNull String id,
-                @Nullable String displayName,
-                @Nullable String parent,
-                @NotNull LoadBalancer.Tinder<?> loadBalancer,
-                @NotNull String database
-        ) {
-            super(
-                    "StaticFamily",
-                    "Provides load balancing services for stateful servers."
-            );
-            this.id = id;
-            this.displayName = displayName;
-            this.parent = parent;
-            this.loadBalancer = loadBalancer;
-            this.database = database;
-        }
-
-        public Tinder metadata(@NotNull String key, @NotNull Object value) {
-            this.metadata.put(key, value);
-            return this;
-        }
-
-        public Tinder unavailableProtocol(@NotNull UnavailableProtocol unavailableProtocol) {
-            this.unavailableProtocol = unavailableProtocol;
-            return this;
-        }
-
-        public Tinder storageProtocol(@NotNull StorageProtocol storageProtocol) {
-            this.storageProtocol = storageProtocol;
-            return this;
-        }
-
-        public Tinder residenceExpiration(@NotNull LiquidTimestamp residenceExpiration) {
-            this.residenceExpiration = residenceExpiration;
-            return this;
-        }
-
-        @Override
-        public @NotNull StaticFamily ignite() throws Exception {
-            return new StaticFamily(
-                    this.id,
-                    this.displayName,
-                    this.parent,
-                    this.metadata,
-                    this.loadBalancer,
-                    this.residenceExpiration,
-                    this.unavailableProtocol,
-                    this.storageProtocol,
-                    this.database
-            );
-        }
     }
 
     public enum UnavailableProtocol {
