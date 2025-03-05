@@ -1,5 +1,5 @@
 {
-  "main": "group.aelysium.rustyconnector.modules.static_family.RCMStaticFamilyProvider$Builder",
+  "main": "group.aelysium.rustyconnector.modules.static_family.StaticFamilyProvider$Builder",
   "name": "StaticFamilyProvider",
   "description": "This module does not internally contain any data. Static Families are registered directly to the FamilyRegistry.",
   "dependencies": [

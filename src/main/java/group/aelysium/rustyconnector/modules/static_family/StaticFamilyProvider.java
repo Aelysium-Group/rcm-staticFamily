@@ -22,7 +22,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-public class RCMStaticFamilyProvider implements Module {
+public class StaticFamilyProvider implements Module {
     @Override
     public @Nullable Component details() {
         return null;
@@ -31,8 +31,8 @@ public class RCMStaticFamilyProvider implements Module {
     @Override
     public void close() throws Exception {}
 
-    public static class Builder extends ExternalModuleBuilder<RCMStaticFamilyProvider> {
-        public void bind(@NotNull ProxyKernel kernel, @NotNull RCMStaticFamilyProvider instance) {
+    public static class Builder extends ExternalModuleBuilder<StaticFamilyProvider> {
+        public void bind(@NotNull ProxyKernel kernel, @NotNull StaticFamilyProvider instance) {
             kernel.fetchModule("FamilyRegistry").onStart(f -> {
                 FamilyRegistry registry = (FamilyRegistry) f;
                 
@@ -93,8 +93,8 @@ public class RCMStaticFamilyProvider implements Module {
         
         @NotNull
         @Override
-        public RCMStaticFamilyProvider onStart(@NotNull Path dataDirectory) throws Exception {
-            return new RCMStaticFamilyProvider();
+        public StaticFamilyProvider onStart(@NotNull Path dataDirectory) throws Exception {
+            return new StaticFamilyProvider();
         }
     }
 }
