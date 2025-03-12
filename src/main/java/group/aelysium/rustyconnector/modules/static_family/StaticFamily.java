@@ -12,11 +12,10 @@ import group.aelysium.rustyconnector.proxy.util.AddressUtil;
 import group.aelysium.rustyconnector.proxy.util.LiquidTimestamp;
 import group.aelysium.rustyconnector.shaded.group.aelysium.ara.Flux;
 import group.aelysium.rustyconnector.shaded.group.aelysium.haze.lib.DataHolder;
+import group.aelysium.rustyconnector.shaded.group.aelysium.haze.lib.Filter;
 import group.aelysium.rustyconnector.shaded.group.aelysium.haze.lib.Filterable;
 import group.aelysium.rustyconnector.shaded.group.aelysium.haze.lib.Type;
-import group.aelysium.rustyconnector.shaded.group.aelysium.haze.query.CreateRequest;
-import group.aelysium.rustyconnector.shaded.group.aelysium.haze.query.ReadRequest;
-import group.aelysium.rustyconnector.shaded.group.aelysium.haze.query.UpdateRequest;
+import group.aelysium.rustyconnector.shaded.group.aelysium.haze.requests.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -192,8 +191,11 @@ public class StaticFamily extends Family {
             Set<Residence> response;
             {
                 ReadRequest query = db.newReadRequest(RESIDENCE_TABLE);
-                query.filters().filterBy("player_uuid", new Filterable.FilterValue(player.uuid().toString(), Filterable.Qualifier.EQUALS));
-                query.filters().filterBy("family_id", new Filterable.FilterValue(this.id(), Filterable.Qualifier.EQUALS));
+                query.withFilter(
+                    Filter
+                         .by("player_uuid", new Filter.Value(player.uuid().toString(), Filter.Qualifier.EQUALS))
+                        .AND("family_id",   new Filter.Value(this.id(), Filter.Qualifier.EQUALS))
+                );
                 
                 response = new HashSet<>(query.execute(Residence.class));
             }
@@ -256,8 +258,11 @@ public class StaticFamily extends Family {
                 {
                     UpdateRequest query = db.newUpdateRequest(RESIDENCE_TABLE);
                     
-                    query.filters().filterBy("player_uuid", new Filterable.FilterValue(player.uuid().toString(), Filterable.Qualifier.EQUALS));
-                    query.filters().filterBy("family_id", new Filterable.FilterValue(this.id(), Filterable.Qualifier.EQUALS));
+                    query.withFilter(
+                        Filter
+                             .by("player_uuid", new Filter.Value(player.uuid().toString(), Filter.Qualifier.EQUALS))
+                            .AND("family_id",   new Filter.Value(this.id(), Filter.Qualifier.EQUALS))
+                    );
 
                     query.parameter("player_uuid", player.uuid().toString());
                     query.parameter("server_id", connection.server().id());

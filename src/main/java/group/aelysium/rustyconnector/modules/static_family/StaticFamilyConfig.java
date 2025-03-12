@@ -227,7 +227,7 @@ public class StaticFamilyConfig {
     })
     public String metadata = "{\\\"serverSoftCap\\\": 30, \\\"serverHardCap\\\": 40}";
     
-    public static StaticFamilyConfig New(String familyID) throws IOException {
+    public static StaticFamilyConfig New(String familyID) {
         Printer printer = new Printer()
                 .pathReplacements(Map.of("id", familyID))
                 .commentReplacements(Map.of("id", familyID));
