@@ -193,8 +193,8 @@ public class StaticFamily extends Family {
                 ReadRequest query = db.newReadRequest(RESIDENCE_TABLE);
                 query.withFilter(
                     Filter
-                         .by("player_uuid", new Filter.Value(player.uuid().toString(), Filter.Qualifier.EQUALS))
-                        .AND("family_id",   new Filter.Value(this.id(), Filter.Qualifier.EQUALS))
+                         .by("player_uuid", player.id(), Filter.EQUALS)
+                        .AND("family_id", this.id(), Filter.EQUALS)
                 );
                 
                 response = new HashSet<>(query.execute(Residence.class));
@@ -204,7 +204,7 @@ public class StaticFamily extends Family {
                 Server server = this.availableServer().orElseThrow();
                 {
                     CreateRequest query = db.newCreateRequest(RESIDENCE_TABLE);
-                    query.parameter("player_uuid", player.uuid().toString());
+                    query.parameter("player_uuid", player.id());
                     query.parameter("server_id", server.id());
                     query.parameter("family_id", this.id());
                     query.parameter("last_joined", Instant.now());
@@ -260,11 +260,11 @@ public class StaticFamily extends Family {
                     
                     query.withFilter(
                         Filter
-                             .by("player_uuid", new Filter.Value(player.uuid().toString(), Filter.Qualifier.EQUALS))
-                            .AND("family_id",   new Filter.Value(this.id(), Filter.Qualifier.EQUALS))
+                             .by("player_uuid", player.id(), Filter.EQUALS)
+                            .AND("family_id", this.id(), Filter.EQUALS)
                     );
 
-                    query.parameter("player_uuid", player.uuid().toString());
+                    query.parameter("player_uuid", player.id());
                     query.parameter("server_id", connection.server().id());
                     query.parameter("family_id", this.id());
                     query.parameter("last_joined", Instant.now());
@@ -279,7 +279,7 @@ public class StaticFamily extends Family {
             RC.Error(
                     Error.from(e)
                             .whileAttempting("To connect a player to their resident server")
-                            .detail("Player", player.username() +" - "+player.uuid())
+                            .detail("Player", player.username() +" - "+player.id())
                             .detail("Family", this.id())
             );
         }
