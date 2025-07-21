@@ -5,6 +5,7 @@ import group.aelysium.rustyconnector.common.errors.Error;
 import group.aelysium.rustyconnector.common.magic_link.packet.Packet;
 import group.aelysium.rustyconnector.common.modules.ExternalModuleBuilder;
 import group.aelysium.rustyconnector.common.modules.Module;
+import group.aelysium.rustyconnector.common.util.Parameter;
 import group.aelysium.rustyconnector.proxy.ProxyKernel;
 import group.aelysium.rustyconnector.proxy.family.Family;
 import group.aelysium.rustyconnector.proxy.family.FamilyRegistry;
@@ -53,22 +54,22 @@ public class StaticFamilyProvider implements Module {
                     for (File file : files) {
                         if (!(file.getName().endsWith(".yml") || file.getName().endsWith(".yaml"))) continue;
                         int extensionIndex = file.getName().lastIndexOf(".");
-                        String name = file.getName().substring(0, extensionIndex);
-                        RC.P.Families().register(name, new Module.Builder<>("StaticFamily", "Provides predictable player connections to server based on database-stored context.") {
+                        String id = file.getName().substring(0, extensionIndex);
+                        RC.P.Families().register(id, new Module.Builder<>("StaticFamily", "Provides predictable player connections to server based on database-stored context.") {
                             @Override
                             public Family get() {
                                 try {
-                                    StaticFamilyConfig config = StaticFamilyConfig.New(name);
+                                    StaticFamilyConfig config = StaticFamilyConfig.New(id);
                                     
                                     LoadBalancerRegistry r = RC.Module("LoadBalancerRegistry");
                                     
                                     Gson gson = new Gson();
                                     JsonObject metadataJson = gson.fromJson(config.metadata, JsonObject.class);
                                     Map<String, Object> mt = new HashMap<>();
-                                    metadataJson.entrySet().forEach(e->mt.put(e.getKey(), Packet.Parameter.fromJSON(e.getValue()).getOriginalValue()));
+                                    metadataJson.entrySet().forEach(e->mt.put(e.getKey(), Parameter.fromJSON(e.getValue()).getOriginalValue()));
                                     
                                     return new StaticFamily(
-                                        name,
+                                        id,
                                         config.displayName,
                                         config.parentFamily,
                                         mt,
@@ -79,7 +80,7 @@ public class StaticFamilyProvider implements Module {
                                         config.database
                                     );
                                 } catch (Exception e) {
-                                    RC.Error(Error.from(e).whileAttempting("To generate the static family "+name));
+                                    RC.Error(Error.from(e).whileAttempting("To generate the static family "+id));
                                 }
                                 return null;
                             }
@@ -93,7 +94,7 @@ public class StaticFamilyProvider implements Module {
         
         @NotNull
         @Override
-        public StaticFamilyProvider onStart(@NotNull Path dataDirectory) throws Exception {
+        public StaticFamilyProvider onStart(@NotNull Context context) throws Exception {
             return new StaticFamilyProvider();
         }
     }
