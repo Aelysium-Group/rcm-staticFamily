@@ -3,7 +3,7 @@
   "name": "StaticFamilyProvider",
   "description": "This module does not internally contain any data. Static Families are registered directly to the FamilyRegistry.",
   "dependencies": [
-    "Haze-MySQL"
+    "Haze"
   ],
   "environments": [
     "proxy"
